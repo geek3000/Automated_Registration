@@ -1,64 +1,71 @@
 from selenium import webdriver
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 import time
-# If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-handle=''
+from bs4 import BeautifulSoup
 email=''
-passw=''
-def get_credentials():
-    handle = input("Enter handle(Nick): ")
-    email = input("Enter email: ")
-    passw = input("Enter pass: ")
-    if not (handle !='' and email != '' and passw != ''):
-        print("Enter valid credentials")
-        exit()
-def get_email():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
-    """
-    creds = None
-    # The file token.pickle stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    
-    flow = InstalledAppFlow.from_client_secrets_file('code.json', SCOPES)
-    creds = flow.run_local_server(port=0)
-
-    service = build('gmail', 'v1', credentials=creds)
-
-    
-    results = service.users().messages().list(userId='me', maxResults=1).execute()
-    message_id = results['messages'][0]['id']
-    message = service.users().messages().get(userId='me', id=message_id).execute()
-    print(message['snippet'])
-    body=message['snippet']
-    body=body.split(' ')
-    for word in body:
-        if word.startswith('http'):
-            return word
-
-get_credentials()
+pwd=''
 driver = webdriver.Chrome()
+contest={}
+driver.get("https://codeforces.com/contests")
 
-driver.get("https://codeforces.com/register")
-handle_field = driver.find_element_by_css_selector("input[name='handle']")
-handle_field.send_keys(handle)
+page=driver.page_source
+dom = BeautifulSoup(page, 'html.parser')
 
-email_field = driver.find_element_by_css_selector("input[name='email']")
-email_field.send_keys(email)
+i=1
+for tr in dom.find_all("tr"):
+    cid=tr.get("data-contestid")
+    if cid:
+        link=tr.find_all("a")
+        for l in link:
+            link_class=l.get("class")
+            
+            
+            if link_class == ['red-link']:
+                name=tr.find("td").text
+                lien=l.get("href")
+                name=name.replace('\n', '')
+                contest[i]=[]
+                contest[i].append(name)
+                contest[i].append(lien)
+                i+=1
 
-pass_field = driver.find_element_by_css_selector("input[name='password']")
-pass_field.send_keys(passw)
 
-c_pass_field = driver.find_element_by_css_selector("input[name='passwordConfirmation']")
-c_pass_field.send_keys(passw)
+print("Choose a contest")
+print()
+for c in contest:
+    print(str(c)+". "+contest[c][0])
+url=""
+try:
+    nb=int(input("Enter number of contest: "))
+    link=contest[nb][1]
+except:
+    print("Incorrect choice")
 
-btn_submit= driver.find_element_by_css_selector(".submit")
-btn_submit.click()
+a=driver.find_element_by_css_selector("a[href='"+link+"']")
+a.click()
+email=''
+a=input("Enter your email or handle: ")
+if a != '':
+    email=a
+else:
+    print("Invalid Email")
+    exit()
+
+c_pass=''
+a=input("Enter your password: ")
+if a != '':
+    c_pass=a
+else:
+    print("Invalid Password")
+    exit()
+
+handle_field=driver.find_element_by_css_selector("input[name='handleOrEmail']")
+pass_handle=driver.find_element_by_css_selector("input[name='password']")
+
+handle_field.send_keys(email)
+pass_handle.send_keys(c_pass)
+
+submit=driver.find_element_by_css_selector(".submit")
+submit.click()
 time.sleep(5)
-link=get_email()
-
-driver.get(link)
+submit1=driver.find_element_by_css_selector(".submit")
+submit1.click()
