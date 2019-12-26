@@ -4,51 +4,106 @@
 ### Install and import module
 
 Use the package manager to install required module.
-
+beautifulsoup4 will help us to parse source of pages
 ```bash
-pip install selenium
+pip install selenium, beautifulsoup4
 ```
 ```python
 from selenium import webdriver
+import time
+from bs4 import BeautifulSoup
 ```
-### Create drive to chrome and go to codeforce registration page
+### Create drive to chrome and go to codeforce contest page
 
 ```python
 driver = webdriver.Chrome()
-driver.get("https://codeforces.com/register")
+driver.get("https://codeforces.com/contests")
 ```
 
-### Get handle, email, password and password confirm input
+### Get get source of codeforce contest page and parse it with beautifullsoup
 
 ```python
-handle_field =driver.find_element_by_css_selector("input[name='handle']")
-email_field = driver.find_element_by_css_selector("input[name='email']")
-pass_field =driver.find_element_by_css_selector("input[name='password']")
-c_pass_field = driver.find_element_by_css_selector("input[name='passwordConfirmation']")
+page=driver.page_source
+dom = BeautifulSoup(page, 'html.parser')
 ```
-### Fill entry with your information
+### Get name and registration link of avalaible contest
 ```python
-handle_field.send_keys("nick")
-email_field.send_keys("email")
-pass_field.send_keys("pass")
-c_pass_field.send_keys("pass")
-```
-### Get submit button and click it
-```python
-btn_submit= driver.find_element_by_css_selector(".submit")
-btn_submit.click()
-```
-### Confirm your account
-Use Gmail Api to get confirmatiom email
+i=1
+for tr in dom.find_all("tr"):
+    cid=tr.get("data-contestid")
+    if cid:
+        link=tr.find_all("a")
+        for l in link:
+            link_class=l.get("class")
+            
+            
+            if link_class == ['red-link']:
+                name=tr.find("td").text
+                lien=l.get("href")
+                name=name.replace('\n', '')
+                contest[i]=[]
+                contest[i].append(name)
+                contest[i].append(lien)
+                i+=1
 
-Follow this [link](https://codehandbook.org/how-to-read-email-from-gmail-api-using-python/)
-get confirmation link and go to it with
-```python
-driver.get(link)
 ```
+### Ask the user to choose a contest
+```python
+print("Choose a contest")
+print()
+for c in contest:
+    print(str(c)+". "+contest[c][0])
+url=""
+try:
+    nb=int(input("Enter number of contest: "))
+    link=contest[nb][1]
+except:
+    print("Incorrect choice")
+```
+### Click on registration link with selenium
+```python
+a=driver.find_element_by_css_selector("a[href='"+link+"']")
+a.click()
+```
+
+### Get user credentials email or handle and password
+```python
+email=''
+a=input("Enter your email or handle: ")
+if a != '':
+    email=a
+else:
+    print("Invalid Email")
+    exit()
+
+c_pass=''
+a=input("Enter your password: ")
+if a != '':
+    c_pass=a
+else:
+    print("Invalid Password")
+    exit()
+```
+
+### Fill fields
+```python
+handle_field=driver.find_element_by_css_selector("input[name='handleOrEmail']")
+pass_handle=driver.find_element_by_css_selector("input[name='password']")
+
+handle_field.send_keys(email)
+pass_handle.send_keys(c_pass)
+```
+### Submit the login form 
+```python
+submit=driver.find_element_by_css_selector(".submit")
+submit.click()
+```
+### Wait the register page of contest load and click on register button
+```python
+time.sleep(5)
+submit1=driver.find_element_by_css_selector(".submit")
+submit1.click()
+```
+
 ## Lear more
 Selenium [documation](https://selenium-python.readthedocs.io/getting-started.html)
-
-Gmail Api [documation](https://developers.google.com/gmail/api/quickstart/python)
-
-Also [this](https://medium.com/better-programming/a-beginners-guide-to-the-google-gmail-api-and-its-documentation-c73495deff08)
