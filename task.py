@@ -5,7 +5,16 @@ from google.auth.transport.requests import Request
 import time
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-
+handle=''
+email=''
+passw=''
+def get_credentials():
+    handle = input("Enter handle(Nick): ")
+    email = input("Enter email: ")
+    passw = input("Enter pass: ")
+    if not (handle !='' and email != '' and passw != ''):
+        print("Enter valid credentials")
+        exit()
 def get_email():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
@@ -31,20 +40,21 @@ def get_email():
         if word.startswith('http'):
             return word
 
+get_credentials()
 driver = webdriver.Chrome()
-driver.get("https://codeforces.com/register")
 
+driver.get("https://codeforces.com/register")
 handle_field = driver.find_element_by_css_selector("input[name='handle']")
-handle_field.send_keys("nick")
+handle_field.send_keys(handle)
 
 email_field = driver.find_element_by_css_selector("input[name='email']")
-email_field.send_keys("email")
+email_field.send_keys(email)
 
 pass_field = driver.find_element_by_css_selector("input[name='password']")
-pass_field.send_keys("dmedgieiGMIEG/EIGTDDqeq geg egG   E   E")
+pass_field.send_keys(passw)
 
 c_pass_field = driver.find_element_by_css_selector("input[name='passwordConfirmation']")
-c_pass_field.send_keys("dmedgieiGMIEG/EIGTDDqeq geg egG   E   E")
+c_pass_field.send_keys(passw)
 
 btn_submit= driver.find_element_by_css_selector(".submit")
 btn_submit.click()
